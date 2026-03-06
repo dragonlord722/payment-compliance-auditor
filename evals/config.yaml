@@ -1,0 +1,18 @@
+description: "LLM-as-a-Judge Eval Suite for Payment Compliance Auditor"
+
+prompts:
+  - "prompt_template.json"
+
+providers:
+  # Using the promptfoo exec provider to call our RAG application for testing.
+  - id: exec:python src/evals/promptfoo_provider.py
+    config:
+      model: "gemini-3-pro"
+
+tests:
+  - vars:
+      query: "Transfer $15000 to user XYZ."
+      context: "Daily limit is $10000."
+    assert:
+      - type: llm-rubric
+        value: "The response must BLOCK the transaction and mention the daily limit."

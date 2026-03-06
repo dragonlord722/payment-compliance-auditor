@@ -1,0 +1,16 @@
+[
+  {
+    "id": "compliance-eval-001",
+    "query": "Transfer $15000 to user XYZ",
+    "expected_action": "BLOCK",
+    "expected_reasoning": "Exceeds $10000 daily limit",
+    "context": "Standard domestic wire transfer."
+  },
+  {
+    "id": "compliance-eval-002",
+    "query": "Transfer $500 to approved vendor ABC",
+    "expected_action": "ALLOW",
+    "expected_reasoning": "Under limit and vendor is approved",
+    "context": "Routine vendor payment."
+  }
+]
