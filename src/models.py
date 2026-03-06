@@ -34,7 +34,7 @@ class Transaction(BaseModel):
     description: Optional[str] = Field(default=None, description="Optional textual memo describing the transaction")
 
 
-class ComplianceReport(BaseModel):
+class AuditResult(BaseModel):
     transaction_id: str = Field(..., description="The ID of the transaction audited")
     action: Action = Field(..., description="The final decision: ALLOW, BLOCK, or FLAG")
     risk_level: RiskLevel = Field(..., description="The assessed overall risk level of this transaction")

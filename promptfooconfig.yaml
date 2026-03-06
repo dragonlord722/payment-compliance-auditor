@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: "Payment Auditor: Compliance & Policy Evaluation"
+
+prompts:
+  - |
+    You are a Senior Payment Compliance Auditor. 
+    Analyze the following transaction against the provided policy.
+    
+    Policy: {{policy}}
+    Transaction: {{transaction}}
+    IMPORTANT: Output ONLY valid raw JSON. 
+    Do not use markdown backticks, code blocks, or preamble.
+    
+    Output your result in JSON format:
+    {
+      "status": "APPROVED" | "FLAGGED",
+      "reason": "string",
+      "policy_id": "string"
+    }
+
+providers:
+  - id: google:gemini-2.5-flash
+    label: "Auditor-Flash"
+    config:
+      temperature: 0
+      response_mime_type: "application/json"  # Forces Gemini to return pure JSON
+
+defaultTest:
+  assert:
+    - type: is-json
+    - type: latency
+      threshold: 3000  # Must respond under 3 seconds
+
+tests:
+  - description: "Detect High-Risk Merchant Category"
+    vars:
+      policy: "All transactions over $500 in the 'Gambling' category must be FLAGGED."
+      transaction: "{ 'amount': 650, 'category': 'Gambling', 'merchant': 'Ace Casino' }"
+    assert:
+      - type: javascript
+        value: |
+          const res = JSON.parse(output);
+          return res.status === 'FLAGGED' && res.reason.includes('500');
+
+  - description: "Approve Valid Business Expense"
+    vars:
+      policy: "Travel expenses under $1000 are auto-approved."
+      transaction: "{ 'amount': 150, 'category': 'Travel', 'merchant': 'Uber' }"
+    assert:
+      - type: javascript
+        value: |
+          const res = JSON.parse(output);
+          return res.status === 'APPROVED' && res.reason.includes('150');
+
+  - description: "Edge Case: Missing Data"
+    vars:
+      policy: "All transactions must have a valid merchant name."
+      transaction: "{ 'amount': 50, 'category': 'Food' }"
+    assert:
+      - type: javascript
+        value: |
+          const res = JSON.parse(output);
+          return res.status === 'FLAGGED' && res.reason.toLowerCase().includes('merchant');
